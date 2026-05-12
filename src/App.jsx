@@ -172,8 +172,21 @@ export default function App() {
         </div>
       </div>
 
-      <div style={{textAlign:"center",marginTop:18,fontSize:11,color:C.textLight}}>
-        最終生理日：{fmtJa(lp)}
+      <div style={{
+        marginTop:18,padding:"12px 14px",
+        background:C.bgSub,borderRadius:12,
+        border:`1px solid ${C.border}`,
+      }}>
+        <div style={{fontSize:10,color:C.textLight,fontWeight:700,letterSpacing:2,marginBottom:8}}>ご利用にあたって</div>
+        {[
+          "対応ガイドの指標には個人差があります。目安としてご利用ください。",
+          "対応ガイドは［設定］ページよりカスタマイズが出来ます。",
+        ].map((t,i)=>(
+          <div key={i} style={{display:"flex",gap:8,fontSize:11,color:C.textMid,lineHeight:1.7,marginBottom:i===0?6:0}}>
+            <span style={{color:C.textLight,flexShrink:0}}>・</span>
+            <span>{t}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
