@@ -248,9 +248,6 @@ export default function App() {
           <input type="date" value={custD||lp} onChange={e=>setCustD(e.target.value)} style={{...inpS,flex:1}}/>
           <button onClick={()=>{if(custD){setLp(custD);setCustD("");}}} style={aBs(C.safe.main)}>確定</button>
         </div>
-        <div style={{fontSize:11,color:C.textLight,marginTop:8,lineHeight:1.6}}>
-          ※ 通知をするにはこのアプリをホーム画面に追加してください。
-        </div>
       </Card>
 
       <Card title="🔔 通知設定">
@@ -276,6 +273,9 @@ export default function App() {
             </div>
           </div>
         )}
+        <div style={{fontSize:11,color:C.textLight,marginTop:10,lineHeight:1.6}}>
+          ※アプリをホーム画面に追加すると利用できます
+        </div>
       </Card>
 
       <Card title="🎨 フェーズの詳細設定">
