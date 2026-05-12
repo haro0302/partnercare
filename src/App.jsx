@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
 
-// ── カラーパレット ────────────────────────────────────────────────
 const C = {
-  bg:          "#F7F4EF",
-  bgCard:      "#FFFFFF",
-  bgSub:       "#F0EDE8",
-  border:      "#E5E0D8",
-  text:        "#2C2820",
-  textMid:     "#7A7068",
-  textLight:   "#B0A898",
-  // soft = ホームボタン背景（淡い）/ calSoft = カレンダーセル背景（より濃く識別しやすい）
+  bg:        "#F7F4EF",
+  bgCard:    "#FFFFFF",
+  bgSub:     "#F0EDE8",
+  border:    "#E5E0D8",
+  text:      "#2C2820",
+  textMid:   "#7A7068",
+  textLight: "#B0A898",
   danger:  { main:"#C0392B", soft:"#FBF0EF", calSoft:"#F5C8C4", border:"#EFC8C4" },
   caution: { main:"#B87218", soft:"#FDF6EE", calSoft:"#F5DFA0", border:"#EDD8A8" },
   normal:  { main:"#7A7020", soft:"#F8F5E8", calSoft:"#E2DC9A", border:"#DAD490" },
@@ -18,29 +16,29 @@ const C = {
 
 const DEFAULT_PHASES = [
   {
-    id:"danger",  label:"非常に危険", emoji:"🔴", startDay:22, endDay:28,
+    id:"danger",  label:"厳重注意", emoji:"🔴", startDay:22, endDay:28,
     color:C.danger.main,  soft:C.danger.soft,  calSoft:C.danger.calSoft,  border:C.danger.border,
     title:"PMS期（黄体期後半）",
     subtitle:"ホルモン変動で感情の起伏が最も激しい時期。被害感・攻撃性・孤独感が強まります。",
     tips:["頼み事はできるだけ断らかたちで返す","一人時間・一人空間を増やす（自然に距離をとること）","外出は静かな場所・短時間","甘いもの・温かい食べ物をそっと用意","あとで話すか、聞くだけで衝突回避"],
   },
   {
-    id:"caution", label:"危険",       emoji:"🟠", startDay:1,  endDay:5,
+    id:"caution", label:"注意", emoji:"🟠", startDay:1, endDay:5,
     color:C.caution.main, soft:C.caution.soft, calSoft:C.caution.calSoft, border:C.caution.border,
     title:"生理期間",
     subtitle:"身体的につらく、感情も貧血・腹痛・倦怠感があります。",
     tips:["家事の比率を多めに肩代わり（買い物・洗濯）","温かい飲み物・湯たんぽでサポート","外出は必要最低限に","会話は短く、否定しない"],
   },
   {
-    id:"normal",  label:"普通",       emoji:"🟡", startDay:14, endDay:21,
+    id:"normal",  label:"普通", emoji:"🟡", startDay:14, endDay:21,
     color:C.normal.main,  soft:C.normal.soft,  calSoft:C.normal.calSoft,  border:C.normal.border,
     title:"排卵後・黄体期前半",
     subtitle:"体温が上がり始め、少し眠くなり、軽いイライラが出始める時期です。",
     tips:["衝突しそうなトークは避ける","感謝とねぎらいを多く","外出前での混雑・騒音は避ける"],
   },
   {
-    id:"safe",    label:"安全",       emoji:"🟢", startDay:6,  endDay:13,
-    color:C.safe.main,    soft:C.safe.soft,    calSoft:C.safe.calSoft,    border:C.safe.border,
+    id:"safe", label:"安全", emoji:"🟢", startDay:6, endDay:13,
+    color:C.safe.main, soft:C.safe.soft, calSoft:C.safe.calSoft, border:C.safe.border,
     title:"安定期（卵胞期）",
     subtitle:"気分・体調が比較的安定。社交的になりやすく、絶好のタイミングです。",
     tips:["デートや外食の計画はこの時期がベスト","新しい話題・相談ごとはこの時期に持ち込む","ありがとうを多く伝えると信頼貯金が貯まる"],
@@ -51,44 +49,90 @@ const CYCLE = 28;
 function getTokyo() { return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"})); }
 function toDS(d) { const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`; }
 function fmtJa(d) { return new Date(d).toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric"}); }
-function parseDate(s) {
-  const [y,m,d] = s.split("-").map(Number);
-  return Date.UTC(y, m-1, d);
+function parseDate(s) { const [y,m,d]=s.split("-").map(Number); return Date.UTC(y,m-1,d); }
+function cycleDay(lp,tgt) {
+  const diff=Math.floor((parseDate(tgt)-parseDate(lp))/86400000);
+  if(diff<0) return ((diff%CYCLE)+CYCLE)%CYCLE||CYCLE;
+  return (diff%CYCLE)+1;
 }
-function cycleDay(lp, tgt) {
-  const diff = Math.floor((parseDate(tgt) - parseDate(lp)) / 86400000);
-  if(diff < 0) return ((diff % CYCLE) + CYCLE) % CYCLE || CYCLE;
-  return (diff % CYCLE) + 1;
-}
-function getPhase(day, phases) { return phases.find(p=>day>=p.startDay&&day<=p.endDay)||phases[2]; }
+function getPhase(day,phases) { return phases.find(p=>day>=p.startDay&&day<=p.endDay)||phases[2]; }
 function daysInMonth(y,m) { return new Date(y,m+1,0).getDate(); }
 
-// ────────────────────────────────────────────────────────────────
 export default function App() {
-  const [lp,    setLp]    = useState(()=>localStorage.getItem("lp")||toDS(getTokyo()));
-  const [phases,setPhases]= useState(()=>{try{return JSON.parse(localStorage.getItem("ph"))||DEFAULT_PHASES;}catch{return DEFAULT_PHASES;}});
-  const [view,  setView]  = useState("home");
-  const [popup, setPopup] = useState(null);
-  const [popIn, setPopIn] = useState(false);
-  const [custD, setCustD] = useState("");
-  const [editId,setEditId]= useState(null);
-  const [cal,   setCal]   = useState(()=>{const t=getTokyo();return{y:t.getFullYear(),m:t.getMonth()};});
+  const [lp,     setLp]    = useState(()=>localStorage.getItem("lp")||toDS(getTokyo()));
+  const [phases, setPhases]= useState(()=>{try{return JSON.parse(localStorage.getItem("ph"))||DEFAULT_PHASES;}catch{return DEFAULT_PHASES;}});
+  const [view,   setView]  = useState("home");
+  const [popup,  setPopup] = useState(null);
+  const [popIn,  setPopIn] = useState(false);
+  const [custD,  setCustD] = useState("");
+  const [notif,  setNotif] = useState(()=>localStorage.getItem("notif")==="true");
+  const [nTime,  setNTime] = useState(()=>localStorage.getItem("ntime")||"08:00");
+  const [editId, setEditId]= useState(null);
+  const [cal,    setCal]   = useState(()=>{const t=getTokyo();return{y:t.getFullYear(),m:t.getMonth()};});
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(()=>{localStorage.setItem("lp",lp);},[lp]);
   useEffect(()=>{localStorage.setItem("ph",JSON.stringify(phases));},[phases]);
+  useEffect(()=>{localStorage.setItem("notif",notif);},[notif]);
+  useEffect(()=>{localStorage.setItem("ntime",nTime);},[nTime]);
+
+  // ホーム画面追加バナー
+  useEffect(()=>{
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true;
+    if(!isStandalone && !localStorage.getItem("installDismissed")){
+      const t = setTimeout(()=>setShowInstallBanner(true), 1500);
+      return ()=>clearTimeout(t);
+    }
+  },[]);
+
+  // 通知スケジューリング
+  useEffect(()=>{
+    if(!notif) return;
+    let tid;
+    const schedule = ()=>{
+      if(Notification.permission !== "granted") return;
+      const [h,mn] = nTime.split(":").map(Number);
+      const now = getTokyo();
+      const fire = new Date(now);
+      fire.setHours(h,mn,0,0);
+      if(fire<=now) fire.setDate(fire.getDate()+1);
+      const ms = fire-now;
+      tid = setTimeout(()=>{
+        const day = cycleDay(lp, toDS(getTokyo()));
+        const phase = getPhase(day, phases);
+        const title = `パートナーケア ${phase.emoji}`;
+        const body = `今日は${phase.label}（Day ${day}）。${phase.tips[0]||""}`;
+        if(navigator.serviceWorker?.controller){
+          navigator.serviceWorker.controller.postMessage({type:"SHOW_NOTIF",title,body});
+        } else if(Notification.permission==="granted"){
+          new Notification(title,{body,icon:"/icon.svg"});
+        }
+        schedule();
+      }, ms);
+    };
+    schedule();
+    return ()=>clearTimeout(tid);
+  },[notif, nTime, lp, phases]);
 
   const today    = getTokyo();
   const todayStr = toDS(today);
   const todayDay = cycleDay(lp, todayStr);
   const tp       = getPhase(todayDay, phases);
 
-  const openPopup = ph=>{setPopup(ph);setTimeout(()=>setPopIn(true),10);};
-  const closePopup= ()=>{setPopIn(false);setTimeout(()=>setPopup(null),280);};
+  const openPopup  = ph=>{setPopup(ph);setTimeout(()=>setPopIn(true),10);};
+  const closePopup = ()=>{setPopIn(false);setTimeout(()=>setPopup(null),280);};
 
-  // ── ホーム ────────────────────────────────────────────────
+  const requestNotif = async()=>{
+    if(!("Notification" in window)) return alert("このブラウザは通知に対応していません");
+    const perm = await Notification.requestPermission();
+    if(perm==="granted") setNotif(true);
+    else alert("通知が許可されませんでした。ブラウザの設定から許可してください。");
+  };
+
+  // ── ホーム ──────────────────────────────────────────
   const HomeView = ()=>(
     <div style={{animation:"fadeUp 0.3s ease"}}>
-      {/* ステータスカード */}
       <div style={{
         background:tp.soft, border:`1.5px solid ${tp.border}`,
         borderRadius:20, padding:"22px 20px", marginBottom:14,
@@ -96,7 +140,7 @@ export default function App() {
         boxShadow:`0 3px 20px ${tp.color}14`,
       }}>
         <div style={{position:"absolute",right:-8,top:-8,fontSize:90,opacity:.07,pointerEvents:"none",lineHeight:1}}>{tp.emoji}</div>
-        <div style={{fontSize:10,color:C.textLight,letterSpacing:2.5,fontWeight:700,marginBottom:5}}>TODAY</div>
+        <div style={{fontSize:10,color:C.textLight,letterSpacing:2,fontWeight:700,marginBottom:5}}>今日の彼女の体調は？</div>
         <div style={{fontSize:12,color:C.textMid,marginBottom:12}}>{fmtJa(today)}</div>
         <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
           <div style={{
@@ -119,10 +163,8 @@ export default function App() {
         }}>{tp.subtitle}</div>
       </div>
 
-      {/* 更新ボタン */}
       <UpdateBtn onClick={()=>setLp(todayStr)} label="生理日（Day1）を今日に更新" sub={todayStr}/>
 
-      {/* 4フェーズ */}
       <div style={{marginTop:18}}>
         <div style={{fontSize:10,color:C.textLight,letterSpacing:2,fontWeight:700,marginBottom:10}}>▸ 各フェーズの対応ガイド</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -136,7 +178,7 @@ export default function App() {
     </div>
   );
 
-  // ── カレンダー ────────────────────────────────────────────────
+  // ── カレンダー ──────────────────────────────────────
   const CalView = ()=>{
     const {y,m}=cal;
     const first=new Date(y,m,1).getDay();
@@ -180,10 +222,15 @@ export default function App() {
             );
           })}
         </div>
+        {/* 凡例：カレンダーセルと同じ色の四角で囲む */}
         <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:16,justifyContent:"center"}}>
           {phases.map(ph=>(
-            <div key={ph.id} style={{display:"flex",alignItems:"center",gap:5}}>
-              <div style={{width:10,height:10,borderRadius:3,background:ph.color}}/>
+            <div key={ph.id} style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{
+                width:16,height:16,borderRadius:4,
+                background:ph.calSoft,border:`1.5px solid ${ph.border}`,
+                flexShrink:0,
+              }}/>
               <span style={{fontSize:11,color:C.textMid,fontWeight:500}}>{ph.label}</span>
             </div>
           ))}
@@ -192,7 +239,7 @@ export default function App() {
     );
   };
 
-  // ── 設定 ────────────────────────────────────────────────
+  // ── 設定 ──────────────────────────────────────────
   const SettingsView = ()=>(
     <div style={{animation:"fadeUp 0.3s ease"}}>
       <Card title="📅 生理日（Day1）を変更">
@@ -201,6 +248,34 @@ export default function App() {
           <input type="date" value={custD||lp} onChange={e=>setCustD(e.target.value)} style={{...inpS,flex:1}}/>
           <button onClick={()=>{if(custD){setLp(custD);setCustD("");}}} style={aBs(C.safe.main)}>確定</button>
         </div>
+        <div style={{fontSize:11,color:C.textLight,marginTop:8,lineHeight:1.6}}>
+          ※ ホーム画面アプリ版はブラウザ版と別のデータ領域です。初回のみこちらで設定してください。
+        </div>
+      </Card>
+
+      <Card title="🔔 通知設定">
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:notif?14:0}}>
+          <div>
+            <div style={{fontSize:13,color:C.text,fontWeight:600}}>毎日の体調通知</div>
+            <div style={{fontSize:11,color:C.textLight,marginTop:2}}>指定した時間にバナー通知を送信</div>
+          </div>
+          <Toggle on={notif} onToggle={()=>{
+            if(!notif) requestNotif();
+            else setNotif(false);
+          }}/>
+        </div>
+        {notif&&(
+          <div>
+            <label style={lblS}>通知時間</label>
+            <input type="time" value={nTime} onChange={e=>setNTime(e.target.value)} style={{...inpS,width:"100%"}}/>
+            <div style={{
+              fontSize:11,color:C.textLight,marginTop:10,lineHeight:1.7,
+              background:C.bgSub,borderRadius:8,padding:"8px 10px",
+            }}>
+              ⚠️ 通知はアプリを開いた後にスケジュールされます。iOSでは毎朝アプリを一度開くと翌日以降も通知されます。
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card title="🎨 フェーズの詳細設定">
@@ -231,7 +306,7 @@ export default function App() {
     </div>
   );
 
-  // ── レンダー ────────────────────────────────────────────────
+  // ── レンダー ──────────────────────────────────────
   return(
     <div style={{
       minHeight:"100vh",background:C.bg,
@@ -254,6 +329,7 @@ export default function App() {
           100%{opacity:1;transform:scale(1) translateY(0);}
         }
         @keyframes tipIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(40px);}to{opacity:1;transform:translateY(0);}}
       `}</style>
 
       {/* ヘッダー */}
@@ -292,7 +368,7 @@ export default function App() {
       </div>
 
       {/* コンテンツ */}
-      <div style={{flex:1,padding:"18px 16px",overflowY:"auto"}}>
+      <div style={{flex:1,padding:"18px 16px",overflowY:"auto",paddingBottom: showInstallBanner ? 110 : 18}}>
         {view==="home"     &&<HomeView/>}
         {view==="calendar" &&<CalView/>}
         {view==="settings" &&<SettingsView/>}
@@ -359,11 +435,56 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ホーム画面追加バナー */}
+      {showInstallBanner&&(
+        <InstallBanner onDismiss={()=>{
+          setShowInstallBanner(false);
+          localStorage.setItem("installDismissed","1");
+        }}/>
+      )}
     </div>
   );
 }
 
-// ── サブコンポーネント ──────────────────────────────────────────
+// ── サブコンポーネント ────────────────────────────────────
+function InstallBanner({onDismiss}) {
+  return(
+    <div style={{
+      position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
+      width:"100%",maxWidth:430,
+      background:"rgba(28,18,40,0.93)",
+      backdropFilter:"blur(16px)",
+      borderRadius:"18px 18px 0 0",
+      padding:"14px 16px 20px",
+      display:"flex",alignItems:"center",gap:12,
+      zIndex:200,
+      animation:"slideUp 0.35s cubic-bezier(0.34,1.2,0.64,1) both",
+    }}>
+      <div style={{
+        width:46,height:46,borderRadius:12,
+        background:"linear-gradient(135deg,#e91e8c,#7b1fa2)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:24,flexShrink:0,
+      }}>💕</div>
+      <div style={{flex:1}}>
+        <div style={{color:"#fff",fontWeight:700,fontSize:13,marginBottom:3}}>ホーム画面に追加</div>
+        <div style={{color:"rgba(255,255,255,0.65)",fontSize:11,lineHeight:1.6}}>
+          Safari の <span style={{fontSize:14}}>⬆️</span> →「ホーム画面に追加」をタップしてください
+        </div>
+      </div>
+      <button onClick={onDismiss} style={{
+        width:28,height:28,borderRadius:14,
+        background:"rgba(255,255,255,0.15)",
+        border:"none",color:"rgba(255,255,255,0.7)",
+        fontSize:18,cursor:"pointer",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        flexShrink:0,lineHeight:1,
+      }}>×</button>
+    </div>
+  );
+}
+
 function UpdateBtn({onClick,label,sub}) {
   const [h,setH]=useState(false);
   return(
@@ -378,7 +499,7 @@ function UpdateBtn({onClick,label,sub}) {
         transition:"all 0.18s",color:C.text,fontSize:14,fontWeight:600,
       }}
     >
-      <span style={{fontSize:17}}>🩸</span>
+      <span style={{fontSize:17}}>🫶</span>
       <span>{label}</span>
       <span style={{fontSize:11,color:C.textLight,marginLeft:2}}>{sub}</span>
     </button>
@@ -416,6 +537,22 @@ function Card({title,children}) {
   );
 }
 
+function Toggle({on,onToggle}) {
+  return(
+    <div onClick={onToggle} style={{
+      width:44,height:24,borderRadius:12,
+      background:on?C.safe.main:C.border,
+      position:"relative",cursor:"pointer",transition:"background 0.25s",flexShrink:0,
+    }}>
+      <div style={{
+        width:18,height:18,borderRadius:9,background:"#fff",
+        position:"absolute",top:3,left:on?23:3,
+        transition:"left 0.25s",boxShadow:"0 1px 4px rgba(0,0,0,0.15)",
+      }}/>
+    </div>
+  );
+}
+
 function PhaseEditor({phase,onSave}) {
   const [f,setF]=useState({...phase,tips:[...phase.tips]});
   const u=(k,v)=>setF({...f,[k]:v});
@@ -441,7 +578,7 @@ function PhaseEditor({phase,onSave}) {
   );
 }
 
-// ── スタイル定数 ──────────────────────────────────────────────────
+// ── スタイル定数 ──────────────────────────────────────────
 const inpS = {
   background:C.bgSub, border:`1px solid ${C.border}`,
   borderRadius:8, padding:"10px 12px",
