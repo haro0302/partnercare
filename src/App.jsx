@@ -469,13 +469,14 @@ function InstallBanner({onDismiss}) {
       }}>💕</div>
       <div style={{flex:1}}>
         <div style={{color:"#fff",fontWeight:700,fontSize:13,marginBottom:3}}>ホーム画面に追加</div>
-        <div style={{color:"rgba(255,255,255,0.65)",fontSize:11,lineHeight:1.6,display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
-          Safari の
-          <svg width="14" height="16" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:"inline-block",verticalAlign:"middle",flexShrink:0}}>
-            <path d="M12 2 L12 18 M7 7 L12 2 L17 7" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 13 L4 24 L20 24 L20 13" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          →「ホーム画面に追加」をタップしてください
+        <div style={{color:"rgba(255,255,255,0.65)",fontSize:11,lineHeight:1.6}}>
+          Safari の <span style={{display:"inline-flex",alignItems:"center",gap:3,whiteSpace:"nowrap",verticalAlign:"middle"}}>
+            <svg width="13" height="15" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2 L12 18 M7 7 L12 2 L17 7" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 13 L4 24 L20 24 L20 13" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            →
+          </span>「ホーム画面に追加」をタップしてください
         </div>
       </div>
       <button onClick={onDismiss} style={{
