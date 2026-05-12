@@ -249,7 +249,7 @@ export default function App() {
           <button onClick={()=>{if(custD){setLp(custD);setCustD("");}}} style={aBs(C.safe.main)}>確定</button>
         </div>
         <div style={{fontSize:11,color:C.textLight,marginTop:8,lineHeight:1.6}}>
-          ※ ホーム画面アプリ版はブラウザ版と別のデータ領域です。初回のみこちらで設定してください。
+          ※ 通知をするにはこのアプリをホーム画面に追加してください。
         </div>
       </Card>
 
@@ -451,12 +451,12 @@ export default function App() {
 function InstallBanner({onDismiss}) {
   return(
     <div style={{
-      position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
-      width:"100%",maxWidth:430,
-      background:"rgba(28,18,40,0.93)",
+      position:"fixed",bottom:9,left:"9%",transform:"translateX(-50%)",
+      width:"82%",maxWidth:430,
+      background:"rgba(28,18,40,0.6)",
       backdropFilter:"blur(16px)",
-      borderRadius:"18px 18px 0 0",
-      padding:"14px 16px 20px",
+      borderRadius:18,
+      padding:"5px 16px 5px",
       display:"flex",alignItems:"center",gap:12,
       zIndex:200,
       animation:"slideUp 0.35s cubic-bezier(0.34,1.2,0.64,1) both",
@@ -469,8 +469,13 @@ function InstallBanner({onDismiss}) {
       }}>💕</div>
       <div style={{flex:1}}>
         <div style={{color:"#fff",fontWeight:700,fontSize:13,marginBottom:3}}>ホーム画面に追加</div>
-        <div style={{color:"rgba(255,255,255,0.65)",fontSize:11,lineHeight:1.6}}>
-          Safari の <span style={{fontSize:14}}>⬆️</span> →「ホーム画面に追加」をタップしてください
+        <div style={{color:"rgba(255,255,255,0.65)",fontSize:11,lineHeight:1.6,display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}>
+          Safari の
+          <svg width="14" height="16" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:"inline-block",verticalAlign:"middle",flexShrink:0}}>
+            <path d="M12 2 L12 18 M7 7 L12 2 L17 7" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 13 L4 24 L20 24 L20 13" stroke="rgba(255,255,255,0.85)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          →「ホーム画面に追加」をタップしてください
         </div>
       </div>
       <button onClick={onDismiss} style={{
